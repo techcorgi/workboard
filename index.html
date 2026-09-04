@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111111" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="START" />
+  <title>START</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0b0c;
+      --panel: #151517;
+      --panel-2: #1d1d20;
+      --text: #f5f5f5;
+      --muted: #8e8e93;
+      --border: rgba(255,255,255,.08);
+      --accent: #ffffff;
+      --danger: #ff6961;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 50% 10%, rgba(255,255,255,.055), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family:
+        -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+        "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    button, input, textarea { font: inherit; }
+
+    .app {
+      height: 100dvh;
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding:
+        max(28px, env(safe-area-inset-top))
+        max(28px, env(safe-area-inset-right))
+        max(28px, env(safe-area-inset-bottom))
+        max(28px, env(safe-area-inset-left));
+    }
+
+    .shell {
+      width: min(620px, 100%);
+      min-height: min(820px, 90dvh);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .goal-wrap {
+      text-align: center;
+      margin: 0 auto 54px;
+      max-width: 560px;
+    }
+
+    .goal-label {
+      font-size: 12px;
+      letter-spacing: .22em;
+      font-weight: 700;
+      color: #626268;
+      margin-bottom: 12px;
+    }
+
+    .goal {
+      font-size: clamp(24px, 4.5vw, 38px);
+      font-weight: 720;
+      line-height: 1.35;
+      letter-spacing: -.025em;
+      color: #d8d8dc;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .eyebrow {
+      text-align: center;
+      font-size: 14px;
+      letter-spacing: .28em;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 26px;
+    }
+
+    .task {
+      text-align: center;
+      font-weight: 750;
+      line-height: 1.22;
+      letter-spacing: -.035em;
+      font-size: clamp(38px, 7vw, 64px);
+      margin: 0 auto;
+      max-width: 600px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 16px;
+      margin-top: 20px;
+      min-height: 24px;
+    }
+
+    .timer {
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -.035em;
+      font-size: clamp(58px, 11vw, 122px);
+      font-weight: 760;
+      margin: 18px 0 4px;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 56px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-width: 170px;
+      min-height: 62px;
+      padding: 16px 28px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-weight: 750;
+      font-size: 18px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .08s ease, background .15s ease, opacity .15s ease;
+    }
+
+    .btn:active { transform: scale(.98); }
+
+    .btn.primary {
+      color: #0b0b0c;
+      background: var(--accent);
+      border-color: transparent;
+      min-width: 220px;
+    }
+
+    .btn.ghost { color: var(--muted); }
+    .btn.danger { color: var(--danger); }
+
+    .footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .footer button {
+      pointer-events: auto;
+      border: 0;
+      background: transparent;
+      color: #5b5b60;
+      padding: 10px 18px;
+      font-size: 13px;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.76);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      z-index: 10;
+    }
+
+    .overlay.show { display: flex; }
+
+    .modal {
+      width: min(720px, 100%);
+      background: rgba(22,22,24,.96);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 32px;
+      box-shadow: 0 30px 100px rgba(0,0,0,.45);
+    }
+
+    .modal h2 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      letter-spacing: -.03em;
+    }
+
+    .modal p {
+      margin: 0 0 22px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      resize: none;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 18px 20px;
+      outline: none;
+      font-size: 22px;
+      line-height: 1.45;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    textarea:focus {
+      border-color: rgba(255,255,255,.24);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+
+    .stat {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 18px;
+      font-size: 14px;
+    }
+
+    /* Portrait-first: iPad standing beside the work display. */
+    @media (orientation: portrait) {
+      .app {
+        align-items: stretch;
+        padding-top: max(54px, env(safe-area-inset-top));
+        padding-bottom: max(54px, env(safe-area-inset-bottom));
+      }
+
+      .shell {
+        width: min(600px, 100%);
+        min-height: 100%;
+        margin: 0 auto;
+        justify-content: center;
+      }
+
+      .goal-wrap { margin-bottom: 64px; }
+      .eyebrow { margin-bottom: 34px; }
+
+      .task {
+        font-size: clamp(38px, 7.2vw, 62px);
+        max-width: 580px;
+      }
+
+      .sub {
+        margin-top: 26px;
+        line-height: 1.6;
+      }
+
+      .timer {
+        margin-top: 30px;
+        font-size: clamp(64px, 14vw, 108px);
+      }
+
+      .actions {
+        margin-top: 64px;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .btn {
+        width: min(320px, 78vw);
+        min-height: 68px;
+      }
+
+      .btn.primary { min-width: 0; }
+
+      .stat { margin-top: 28px; }
+    }
+
+    @media (orientation: landscape) {
+      .shell {
+        width: min(920px, 100%);
+        min-height: min(620px, 84dvh);
+      }
+
+      .task {
+        max-width: 860px;
+        font-size: clamp(36px, 5.5vw, 68px);
+      }
+
+      .actions { margin-top: 38px; }
+    }
+
+    @media (max-width: 700px) {
+      .task { font-size: clamp(34px, 9vw, 54px); }
+      .modal { padding: 24px; border-radius: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="shell">
+      <div id="goalWrap" class="goal-wrap" hidden>
+        <div class="goal-label">BIG GOAL</div>
+        <div id="goal" class="goal"></div>
+      </div>
+
+      <div id="eyebrow" class="eyebrow">NEXT ACTION</div>
+      <h1 id="task" class="task"></h1>
+      <div id="sub" class="sub"></div>
+      <div id="timer" class="timer" hidden>00:00</div>
+
+      <div id="actions" class="actions">
+        <button id="startBtn" class="btn primary">START</button>
+        <button id="editBtn" class="btn ghost">EDIT</button>
+      </div>
+
+      <div id="stat" class="stat"></div>
+    </section>
+  </main>
+
+  <div class="footer">
+    <button id="goalBtn">BIG GOAL</button>
+    <button id="resetBtn">RESET DATA</button>
+  </div>
+
+
+  <div id="goalOverlay" class="overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h2>BIG GOAL</h2>
+      <p>頻繁には変えない、期限つきの大目標を1つだけ置く。</p>
+      <textarea
+        id="goalInput"
+        maxlength="160"
+        placeholder="例：2027年9月4日までに純資産1億円"
+        autocapitalize="sentences"
+        autocomplete="off"
+        spellcheck="false"
+      ></textarea>
+      <div class="small">空欄で保存すると非表示になります。</div>
+      <div class="modal-actions">
+        <button id="goalCancelBtn" class="btn ghost">CANCEL</button>
+        <button id="goalSaveBtn" class="btn primary">SAVE</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h2 id="modalTitle">次にやること</h2>
+      <p id="modalText">明日の自分が迷わないレベルまで、具体的な一手だけ書く。</p>
+      <textarea
+        id="taskInput"
+        maxlength="180"
+        placeholder="例：usersテーブルのmigrationを書く"
+        autocapitalize="sentences"
+        autocomplete="off"
+        spellcheck="false"
+      ></textarea>
+      <div class="small">タスク一覧は作らない。次の一手だけ。</div>
+      <div class="modal-actions">
+        <button id="cancelBtn" class="btn ghost">CANCEL</button>
+        <button id="saveBtn" class="btn primary">SAVE</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const KEY = "start-friction-v1";
+
+      const el = {
+        goalWrap: document.getElementById("goalWrap"),
+        goal: document.getElementById("goal"),
+        goalBtn: document.getElementById("goalBtn"),
+        goalOverlay: document.getElementById("goalOverlay"),
+        goalInput: document.getElementById("goalInput"),
+        goalCancelBtn: document.getElementById("goalCancelBtn"),
+        goalSaveBtn: document.getElementById("goalSaveBtn"),
+        eyebrow: document.getElementById("eyebrow"),
+        task: document.getElementById("task"),
+        sub: document.getElementById("sub"),
+        timer: document.getElementById("timer"),
+        actions: document.getElementById("actions"),
+        stat: document.getElementById("stat"),
+        startBtn: document.getElementById("startBtn"),
+        editBtn: document.getElementById("editBtn"),
+        resetBtn: document.getElementById("resetBtn"),
+        overlay: document.getElementById("overlay"),
+        modalTitle: document.getElementById("modalTitle"),
+        modalText: document.getElementById("modalText"),
+        taskInput: document.getElementById("taskInput"),
+        cancelBtn: document.getElementById("cancelBtn"),
+        saveBtn: document.getElementById("saveBtn"),
+      };
+
+      let state = load();
+      let tickHandle = null;
+      let modalMode = "edit";
+
+      function defaultState() {
+        return {
+          goal: "",
+          task: "",
+          active: false,
+          startedAt: null,
+          completedCount: 0,
+          totalSeconds: 0,
+          lastSessionSeconds: 0
+        };
+      }
+
+      function load() {
+        try {
+          return { ...defaultState(), ...JSON.parse(localStorage.getItem(KEY) || "{}") };
+        } catch {
+          return defaultState();
+        }
+      }
+
+      function save() {
+        localStorage.setItem(KEY, JSON.stringify(state));
+      }
+
+      function formatTime(totalSeconds) {
+        const s = Math.max(0, Math.floor(totalSeconds));
+        const hours = Math.floor(s / 3600);
+        const mins = Math.floor((s % 3600) / 60);
+        const secs = s % 60;
+
+        if (hours > 0) {
+          return [hours, mins, secs].map((v, i) => i === 0 ? String(v) : String(v).padStart(2, "0")).join(":");
+        }
+        return [mins, secs].map(v => String(v).padStart(2, "0")).join(":");
+      }
+
+      function currentSessionSeconds() {
+        if (!state.active || !state.startedAt) return 0;
+        return Math.floor((Date.now() - state.startedAt) / 1000);
+      }
+
+      function render() {
+        clearInterval(tickHandle);
+        tickHandle = null;
+
+        if (state.goal && state.goal.trim()) {
+          el.goal.textContent = state.goal.trim();
+          el.goalWrap.hidden = false;
+        } else {
+          el.goal.textContent = "";
+          el.goalWrap.hidden = true;
+        }
+
+        if (!state.task) {
+          el.eyebrow.textContent = "NEXT ACTION";
+          el.task.textContent = "次にやることを1つ決める";
+          el.sub.textContent = "考え込まない。5分で着手できる粒度にする。";
+          el.timer.hidden = true;
+          el.startBtn.textContent = "SET NEXT ACTION";
+          el.editBtn.hidden = true;
+          el.stat.textContent = "";
+          return;
+        }
+
+        el.editBtn.hidden = false;
+        el.task.textContent = state.task;
+
+        if (state.active) {
+          el.eyebrow.textContent = "WORKING";
+          el.sub.textContent = "もう始まっている。考えず、そのまま続ける。";
+          el.timer.hidden = false;
+          el.startBtn.textContent = "DONE";
+          el.editBtn.textContent = "STOP";
+
+          const updateTimer = () => {
+            el.timer.textContent = formatTime(currentSessionSeconds());
+          };
+          updateTimer();
+          tickHandle = setInterval(updateTimer, 1000);
+        } else {
+          el.eyebrow.textContent = "NEXT ACTION";
+          el.sub.textContent = "STARTを押したら、5分だけ手を動かす。";
+          el.timer.hidden = true;
+          el.startBtn.textContent = "START";
+          el.editBtn.textContent = "EDIT";
+        }
+
+        const bits = [];
+        if (state.completedCount > 0) bits.push(`完了 ${state.completedCount} 回`);
+        if (state.totalSeconds > 0) bits.push(`累計 ${formatTime(state.totalSeconds)}`);
+        if (state.lastSessionSeconds > 0) bits.push(`前回 ${formatTime(state.lastSessionSeconds)}`);
+        el.stat.textContent = bits.join("  ·  ");
+      }
+
+      function openModal(mode) {
+        modalMode = mode;
+        el.overlay.classList.add("show");
+
+        if (mode === "done") {
+          el.modalTitle.textContent = "次の一手を予約する";
+          el.modalText.textContent = "ここで明日の自分から意思決定を1つ消す。次に手を動かす対象だけを書く。";
+          el.taskInput.value = "";
+        } else {
+          el.modalTitle.textContent = state.task ? "NEXT ACTIONを編集" : "次にやること";
+          el.modalText.textContent = "抽象的な目標ではなく、5分以内に着手できる具体的な一手だけを書く。";
+          el.taskInput.value = state.task || "";
+        }
+
+        setTimeout(() => el.taskInput.focus(), 120);
+      }
+
+      function closeModal() {
+        el.overlay.classList.remove("show");
+      }
+
+      function start() {
+        state.active = true;
+        state.startedAt = Date.now();
+        save();
+        render();
+      }
+
+      function stopSession({ completed }) {
+        const seconds = currentSessionSeconds();
+        state.active = false;
+        state.startedAt = null;
+        state.lastSessionSeconds = seconds;
+        state.totalSeconds += seconds;
+        if (completed) state.completedCount += 1;
+        save();
+      }
+
+      el.startBtn.addEventListener("click", () => {
+        if (!state.task) {
+          openModal("edit");
+          return;
+        }
+
+        if (!state.active) {
+          start();
+          return;
+        }
+
+        stopSession({ completed: true });
+        render();
+        openModal("done");
+      });
+
+      el.editBtn.addEventListener("click", () => {
+        if (state.active) {
+          const ok = confirm("このセッションを完了扱いにせず停止しますか？");
+          if (!ok) return;
+          stopSession({ completed: false });
+          render();
+        } else {
+          openModal("edit");
+        }
+      });
+
+      el.saveBtn.addEventListener("click", () => {
+        const value = el.taskInput.value.trim();
+        if (!value) return;
+
+        state.task = value;
+        save();
+        closeModal();
+        render();
+      });
+
+      el.cancelBtn.addEventListener("click", closeModal);
+
+      el.overlay.addEventListener("click", (e) => {
+        if (e.target === el.overlay) closeModal();
+      });
+
+      el.goalBtn.addEventListener("click", () => {
+        el.goalInput.value = state.goal || "";
+        el.goalOverlay.classList.add("show");
+        setTimeout(() => el.goalInput.focus(), 120);
+      });
+
+      el.goalCancelBtn.addEventListener("click", () => {
+        el.goalOverlay.classList.remove("show");
+      });
+
+      el.goalSaveBtn.addEventListener("click", () => {
+        state.goal = el.goalInput.value.trim();
+        save();
+        el.goalOverlay.classList.remove("show");
+        render();
+      });
+
+      el.goalOverlay.addEventListener("click", (e) => {
+        if (e.target === el.goalOverlay) {
+          el.goalOverlay.classList.remove("show");
+        }
+      });
+
+      el.resetBtn.addEventListener("click", () => {
+        const ok = confirm("保存データをすべて消しますか？");
+        if (!ok) return;
+        localStorage.removeItem(KEY);
+        state = defaultState();
+        render();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && state.active) render();
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
